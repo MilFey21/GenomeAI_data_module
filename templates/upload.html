@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenomeAI - File Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 2rem;
+        }
+
+        .upload-section {
+            margin-bottom: 2rem;
+        }
+
+        .upload-area {
+            border: 3px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #4facfe;
+            background: #f0f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4facfe;
+            background: #f0f9ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            margin-top: 0.5rem;
+            text-align: center;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .supported-formats {
+            background: #f3f4f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .supported-formats h3 {
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+
+        .format-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .format-tag {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .upload-history {
+            margin-top: 2rem;
+        }
+
+        .upload-history h3 {
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+
+        .history-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .history-item.failed {
+            border-left: 4px solid #ef4444;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-filename {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .history-meta {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .history-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 GenomeAI</h1>
+            <p>Upload your genomic data files for AI-powered analysis</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Supported Formats Section -->
+            <div class="supported-formats">
+                <h3>📄 Supported File Formats</h3>
+                <div class="format-tags" id="formatTags">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <p style="margin-top: 1rem; color: #6b7280; font-size: 0.9rem;">
+                    Maximum file size: <strong>5 GB</strong>
+                </p>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drop your files here or click to browse</div>
+                    <div class="upload-subtext">Drag and drop files or click the button below</div>
+                    <input type="file" id="fileInput" class="file-input" accept=".csv,.tsv,.xlsx,.vcf,.fasta,.fa,.fastq,.fq,.txt,.json,.xml,.bed,.gff,.gtf,.sam,.bam">
+                    <button type="button" class="btn" onclick="document.getElementById('fileInput').click()">
+                        Choose Files
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Uploading...</div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div class="alert alert-success" id="successAlert"></div>
+                <div class="alert alert-error" id="errorAlert"></div>
+            </div>
+
+            <!-- Upload History -->
+            <div class="upload-history">
+                <h3>📊 Upload History</h3>
+                <div id="historyContainer">
+                    <p style="color: #6b7280; text-align: center; padding: 2rem;">
+                        No uploads yet. Upload your first file to get started!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class GenomeAIUploader {
+            constructor() {
+                this.uploadArea = document.getElementById('uploadArea');
+                this.fileInput = document.getElementById('fileInput');
+                this.progressContainer = document.getElementById('progressContainer');
+                this.progressFill = document.getElementById('progressFill');
+                this.progressText = document.getElementById('progressText');
+                this.successAlert = document.getElementById('successAlert');
+                this.errorAlert = document.getElementById('errorAlert');
+                this.historyContainer = document.getElementById('historyContainer');
+                
+                this.setupEventListeners();
+                this.loadSupportedFormats();
+                this.loadUploadHistory();
+            }
+
+            setupEventListeners() {
+                // File input change
+                this.fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.handleFiles(e.target.files);
+                    }
+                });
+
+                // Drag and drop events
+                this.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.add('dragover');
+                });
+
+                this.uploadArea.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.remove('dragover');
+                });
+
+                this.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.remove('dragover');
+                    this.handleFiles(e.dataTransfer.files);
+                });
+
+                // Click to upload
+                this.uploadArea.addEventListener('click', (e) => {
+                    if (e.target === this.uploadArea || e.target.classList.contains('upload-icon') || 
+                        e.target.classList.contains('upload-text') || e.target.classList.contains('upload-subtext')) {
+                        this.fileInput.click();
+                    }
+                });
+            }
+
+            async loadSupportedFormats() {
+                try {
+                    const response = await fetch('/supported_formats');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const formatTags = document.getElementById('formatTags');
+                        formatTags.innerHTML = data.formats.map(format => 
+                            `<span class="format-tag">.${format}</span>`
+                        ).join('');
+                    }
+                } catch (error) {
+                    console.error('Error loading supported formats:', error);
+                }
+            }
+
+            async loadUploadHistory() {
+                try {
+                    const response = await fetch('/upload_history');
+                    const data = await response.json();
+                    
+                    if (data.success && data.uploads.length > 0) {
+                        this.displayUploadHistory(data.uploads);
+                    }
+                } catch (error) {
+                    console.error('Error loading upload history:', error);
+                }
+            }
+
+            displayUploadHistory(uploads) {
+                const sortedUploads = uploads.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                this.historyContainer.innerHTML = sortedUploads.map(upload => {
+                    const date = new Date(upload.timestamp).toLocaleString();
+                    const statusClass = upload.status === 'success' ? 'success' : 'failed';
+                    const statusText = upload.status === 'success' ? 'Uploaded' : 'Failed';
+                    
+                    return `
+                        <div class="history-item ${statusClass}">
+                            <div class="history-info">
+                                <div class="history-filename">${upload.filename}</div>
+                                <div class="history-meta">${date}</div>
+                                ${upload.error_message ? `<div class="history-meta" style="color: #ef4444;">${upload.error_message}</div>` : ''}
+                            </div>
+                            <div class="history-status status-${upload.status}">${statusText}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            validateFile(file) {
+                const allowedExtensions = ['csv', 'tsv', 'xlsx', 'vcf', 'fasta', 'fa', 'fastq', 'fq', 'txt', 'json', 'xml', 'bed', 'gff', 'gtf', 'sam', 'bam'];
+                const maxSize = 5 * 1024 * 1024 * 1024; // 5 GB
+                
+                // Check file extension
+                const extension = file.name.split('.').pop().toLowerCase();
+                if (!allowedExtensions.includes(extension)) {
+                    return {
+                        valid: false,
+                        error: `File type .${extension} is not supported. Supported formats: ${allowedExtensions.join(', ')}`
+                    };
+                }
+                
+                // Check file size
+                if (file.size > maxSize) {
+                    return {
+                        valid: false,
+                        error: `File is too large (${(file.size / (1024*1024*1024)).toFixed(2)} GB). Maximum size: 5 GB`
+                    };
+                }
+                
+                return { valid: true };
+            }
+
+            showAlert(message, type = 'error') {
+                this.hideAlerts();
+                
+                const alert = type === 'success' ? this.successAlert : this.errorAlert;
+                alert.textContent = message;
+                alert.style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            }
+
+            hideAlerts() {
+                this.successAlert.style.display = 'none';
+                this.errorAlert.style.display = 'none';
+            }
+
+            showProgress() {
+                this.progressContainer.style.display = 'block';
+                this.progressFill.style.width = '0%';
+                this.progressText.textContent = 'Preparing upload...';
+            }
+
+            updateProgress(percentage) {
+                this.progressFill.style.width = `${percentage}%`;
+                this.progressText.textContent = `Uploading... ${percentage}%`;
+            }
+
+            hideProgress() {
+                this.progressContainer.style.display = 'none';
+            }
+
+            async handleFiles(files) {
+                if (files.length === 0) return;
+                
+                const file = files[0]; // Handle single file for now
+                
+                // Validate file
+                const validation = this.validateFile(file);
+                if (!validation.valid) {
+                    this.showAlert(validation.error, 'error');
+                    return;
+                }
+                
+                // Show progress
+                this.showProgress();
+                this.hideAlerts();
+                
+                try {
+                    await this.uploadFile(file);
+                } catch (error) {
+                    this.showAlert(`Upload failed: ${error.message}`, 'error');
+                    this.hideProgress();
+                }
+            }
+
+            async uploadFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                return new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    
+                    // Progress tracking
+                    xhr.upload.addEventListener('progress', (e) => {
+                        if (e.lengthComputable) {
+                            const percentage = Math.round((e.loaded / e.total) * 100);
+                            this.updateProgress(percentage);
+                        }
+                    });
+                    
+                    // Success/Error handling
+                    xhr.addEventListener('load', () => {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                this.showAlert(`File "${response.filename}" uploaded successfully!`, 'success');
+                                this.loadUploadHistory(); // Refresh history
+                                resolve(response);
+                            } else {
+                                reject(new Error(response.error || 'Upload failed'));
+                            }
+                        } else {
+                            const response = JSON.parse(xhr.responseText);
+                            reject(new Error(response.error || `HTTP ${xhr.status}: Upload failed`));
+                        }
+                        this.hideProgress();
+                    });
+                    
+                    xhr.addEventListener('error', () => {
+                        reject(new Error('Network error occurred during upload'));
+                        this.hideProgress();
+                    });
+                    
+                    xhr.open('POST', '/upload');
+                    xhr.send(formData);
+                });
+            }
+        }
+
+        // Initialize the uploader when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new GenomeAIUploader();
+        });
+    </script>
+</body>
+</html> 
